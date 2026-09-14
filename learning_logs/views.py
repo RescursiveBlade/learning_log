@@ -1,17 +1,21 @@
 from django.shortcuts import render, redirect
 from .models import Topic, Entry  # <--- 新增导入
 from .forms import TopicForm,EntryForm  # <--- 新增导入
+from django.contrib.auth.decorators import login_required
 
+@login_required
 def index(request):
     """学习笔记的主页"""
     return render(request, 'learning_logs/index.html')
 
+@login_required
 def topics(request):  # <--- 新增函数
     """显示所有的主题"""
-    topics = Topic.objects.order_by('date_added')
+    topics = Topic.objects.filter(owner=request.user).order_by('date_added')
     context = {'topics': topics}
     return render(request, 'learning_logs/topics.html', context)
 
+@login_required
 def topic(request, topic_id):
     """显示单个主题及其所有的条目"""
     topic = Topic.objects.get(id=topic_id)
@@ -19,6 +23,7 @@ def topic(request, topic_id):
     context = {'topic': topic, 'entries': entries}
     return render(request, 'learning_logs/topic.html', context)
 
+@login_required
 def new_topic(request):
     """允许用户创建新主题"""
     if request.method != 'POST':
@@ -28,11 +33,15 @@ def new_topic(request):
         # 提交了数据，对其进行处理
         form = TopicForm(request.POST)
         if form.is_valid():
-            form.save()
+            new_topic = form.save(commit=False)
+            new_topic.owner = request.user  # 绑定当前用户
+            new_topic.save()
             return redirect('learning_logs:topics')
 
     context = {'form': form}
     return render(request, 'learning_logs/new_topic.html', context)
+
+@login_required
 def new_entry(request, topic_id):
     """在特定的主题中添加新条目"""    
     topic = Topic.objects.get(id=topic_id)
@@ -52,6 +61,7 @@ def new_entry(request, topic_id):
     context = {'topic': topic, 'form': form}
     return render(request, 'learning_logs/new_entry.html', context)
 
+@login_required
 def edit_entry(request, entry_id):
     """编辑既有条目"""
     entry = Entry.objects.get(id=entry_id)
