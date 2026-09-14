@@ -196,5 +196,153 @@ Note: Local databases and virtual environments should never be pushed to GitHub.
 "True recursion is calling a better version of yourself every day, until you hit the base case."
 “所谓递归，就是每天调用一次更优秀的自己，直到达到基案。”
 
+📅 Day 3: User Accounts & Authentication (第三天：用户账户与身份验证)
+
+1. Core Progress (核心进展)
+Today, I implemented the core user authentication system for my "Learning Log" app. I created a new users app and integrated Django's built-in authentication framework.
+今天，我为“学习笔记”应用实现了核心的用户认证系统。我创建了一个新的 users 应用，并集成了 Django 内置的认证框架。
+
+User Registration: Implemented a form for users to create their own accounts.
+
+用户注册：实现了用户创建自己账号的表单。
+
+User Login/Logout: Configured templates and URL routing for logging in and out.
+
+用户登录/注销：配置了登录和注销的模板与路由。
+
+Dynamic Navigation: Updated base.html to show different links based on authentication status.
+
+动态导航栏：更新了 base.html，根据用户登录状态动态显示链接。
+
+2. Key Code & Line-by-Line Explanations (关键代码与逐行解释)
+2.1 User Registration Form (users/forms.py)
+I used Django's UserCreationForm to avoid writing password validation and encryption logic from scratch.
+我使用了 Django 内置的 UserCreationForm，避免从零编写密码验证和加密逻辑。
+
+python
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+
+class RegisterForm(UserCreationForm):
+    email = forms.EmailField(required=True, help_text='请输入有效的邮箱地址。')
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password1', 'password2']
+Line-by-line Explanation (逐行解释):
+
+UserCreationForm automatically handles password hashing (encryption) and password strength validation.
+
+UserCreationForm 自动处理密码哈希（加密）和密码强度验证。
+
+email = forms.EmailField(...) adds an email field to the default registration form.
+
+添加了一个邮箱字段到默认的注册表单中。
+
+class Meta defines which fields the form will render on the HTML page.
+
+定义了表单会在 HTML 页面上渲染哪些字段。
+
+2.2 Registration View (users/views.py)
+This view handles both displaying the blank form (GET) and processing submitted data (POST).
+这个视图同时处理“显示空表单（GET）”和“处理提交的数据（POST）”。
+
+python
+from django.shortcuts import render, redirect
+from django.contrib.auth import login
+from .forms import RegisterForm
+
+def register(request):
+    """注册新用户"""
+    if request.method != 'POST':
+        form = RegisterForm()
+    else:
+        form = RegisterForm(data=request.POST)
+        if form.is_valid():
+            new_user = form.save()
+            login(request, new_user) # Automatically log in after registration (自动登录)
+            return redirect('learning_logs:index')
+
+    context = {'form': form}
+    return render(request, 'registration/register.html', context)
+Line-by-line Explanation (逐行解释):
+
+if request.method != 'POST': checks if it's a GET request (user first visiting the page).
+
+检查是否是 GET 请求（用户第一次访问页面）。
+
+form.save() saves the new user to the database (Django handles the encryption).
+
+将新用户保存到数据库（Django 自动处理加密）。
+
+login(request, new_user) logs the user in immediately after registration, preventing them from having to re-enter their credentials.
+
+注册后立即让用户登录，避免他们重新输入账号密码。
+
+2.3 URLs (users/urls.py)
+python
+from django.urls import path, include
+from . import views
+
+app_name = 'users'
+urlpatterns = [
+    path('register/', views.register, name='register'),
+    path('', include('django.contrib.auth.urls')), # Built-in login/logout (内置的登录/注销)
+]
+3. Debugging Log: The "Ghost" Errors (踩坑日志：幽灵报错)
+This section is the most valuable part of my learning today. I hit several classic Django/Windows traps.
+这一节是我今天学习中最重要的部分。我踩中了几个经典的 Django 与 Windows 陷阱。
+
+Trap 1: TemplateDoesNotExist (registration/login.html)
+
+Reason: Django's built-in auth system strictly requires login templates to be inside a registration/ folder, not a users/ folder.
+
+原因：Django 内置的认证系统严格规定，登录模板必须放在 registration/ 文件夹下，而不是 users/ 文件夹下。
+
+Solution: Create users/templates/registration/login.html.
+
+解决：创建了 users/templates/registration/login.html。
+
+Trap 2: HTTP ERROR 405 (Logout Failed)
+
+Reason: Django 6.1.1 no longer allows logging out via a simple GET request (a standard <a> link). It requires a POST request for security.
+
+原因：Django 6.1.1 不再允许通过简单的 GET 请求（普通的 <a> 链接）注销。出于安全考虑，它要求使用 POST 请求。
+
+Solution: Replaced the <a> link in base.html with a <form method="post"> containing {% csrf_token %}.
+
+解决：将 base.html 中的 <a> 链接替换为包含 {% csrf_token %} 的 <form method="post">。
+
+Trap 3: The "Ghost" Blank Page (幽灵空白页)
+
+Reason: The page only showed the navigation bar but no content. This happens when {% block content %} is missing in base.html, or when the child template is not saved to the disk.
+
+原因：页面只显示导航栏，没有任何内容。这通常是因为 base.html 中缺少 {% block content %}，或者子模板没有保存到硬盘上。
+
+Solution: Ensure base.html ends with {% block content %}{% endblock content %}. Always hit Ctrl+S and use Ctrl+Shift+N (Incognito) to clear browser cache.
+
+解决：确保 base.html 以 {% block content %}{% endblock content %} 结尾。务必按 Ctrl+S 保存，并使用 Ctrl+Shift+N（无痕模式）清除浏览器缓存。
+
+Trap 4: Windows File Naming Traps (Windows 文件名陷阱)
+
+Reason: I named a file new.entry.html (dot) instead of new_entry.html (underscore). Windows also hides file extensions (.txt), making me think the file was .html.
+
+原因：我把文件命名成了 new.entry.html（点号），而不是 new_entry.html（下划线）。Windows 也隐藏了文件扩展名（.txt），让我误以为文件是 .html。
+
+Solution: Always double-check file names in File Explorer with "File name extensions" turned on.
+
+解决：始终在文件资源管理器中开启“文件扩展名”，仔细检查文件名。
+
+4. Reflection (今日反思)
+Today was incredibly frustrating but extremely rewarding. I encountered "ghost" errors, HTTP 405 errors, and Windows file naming traps. I learned that 80% of development is troubleshooting, not writing code. I am no longer just copying code; I am learning how to diagnose the environment, understand Django's underlying conventions, and solve problems systematically.
+今天非常折磨，但也极有收获。我遇到了“幽灵”报错、HTTP 405 错误和 Windows 文件名陷阱。我学到了开发中 80% 的时间是在排查问题，而不是写代码。我不再只是复制粘贴代码，而是在学习如何诊断环境、理解 Django 底层的约定，并系统地解决问题。
+
+Next Step: User Data Isolation (Restrict users to only see their own data).
+下一步：用户数据隔离（限制用户只能看到自己的数据）。
+
+
+
+
 
 

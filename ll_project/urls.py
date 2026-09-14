@@ -19,5 +19,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('users/',include('users.urls')),#新增！把users的请求单独分流
     path('',include('learning_logs.urls'))
 ]
