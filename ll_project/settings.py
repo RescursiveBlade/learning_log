@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-q@t8*#x1eocp^v@6@24jt4h$+-14v4@-@6r2fzlv$jfrew#p&8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'recursiveblade']
 
 
 # Application definition
@@ -128,3 +128,4 @@ MAILERS = {
     },
 }
 LOGIN_URL = 'users:login'
+CSRF_TRUSTED_ORIGINS = ['https://recursiveblade.pythonanywhere.com']
