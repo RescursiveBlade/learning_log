@@ -1,5 +1,13 @@
-<p>Learning Logs</p>{% extends 'learning_logs/base.html' %}
+{% extends 'learning_logs/base.html' %}
 
 {% block content %}
-<p>Learning Log helps you keep track of your learning, for any topic you're interested in.</p>
+  <div class="p-5 mb-4 bg-light rounded-3">
+    <div class="container-fluid py-5">
+      <h1 class="display-5 fw-bold">Learning Log</h1>
+      <p class="fs-4">Track your learning, for any topic you're interested in.</p>
+      <hr class="my-4">
+      <p>Start your journey today. Create an account to begin tracking your progress.</p>
+      <a class="btn btn-primary btn-lg" href="{% url 'users:register' %}" role="button">Get Started</a>
+    </div>
+  </div>
 {% endblock content %}
