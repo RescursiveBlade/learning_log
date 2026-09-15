@@ -16,7 +16,7 @@ def register(request):
             # 注册成功后，自动让该用户登录（这是业界惯例，体验更好）
             login(request, new_user)
             # 登录后跳转到主页
-            return redirect('learning_logs:index')
+            return redirect('learning_logs:topics')
 
     # 将表单发送给模板
     context = {'form': form}

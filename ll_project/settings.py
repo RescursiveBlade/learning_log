@@ -131,3 +131,5 @@ LOGIN_URL = 'users:login'
 CSRF_TRUSTED_ORIGINS = ['https://recursiveblade.pythonanywhere.com']
 # 登录成功后自动跳转到 topics 列表页
 LOGIN_REDIRECT_URL = 'learning_logs:topics'
+# 退出登录后，直接跳回首页，避免停留在丑陋的默认注销页
+LOGOUT_REDIRECT_URL = 'learning_logs:index'
